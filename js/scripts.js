@@ -35,8 +35,6 @@ function readText(filePath) {
             }
             populateDataset(dataSum, yVals);
             scatterChart(dataSet);
-            //scatterChart();
-            console.log(dataSet);
         };//end onload()
         reader.readAsText(filePath.files[0]);
     }//end if html5 filelist support
@@ -83,10 +81,11 @@ function populateDataset(sum, array) {
 }
 function scatterChart(dataset) {
     //Chart dimensions
-            var width = 500;
-            var height = 100;
-            var padding = 20;
+            var width = 800;
+            var height = 600;
+            var padding = 30;
 
+            //Static test data
             // var dataset = [
             //                 [5, 20], [480, 90], [250, 50], [100, 33], [330, 95],
             //                 [410, 12], [475, 44], [25, 67], [85, 21], [220, 88],
@@ -95,28 +94,52 @@ function scatterChart(dataset) {
 
     //Create scales for the data (domain and range)
         var xScale = d3.scale.linear()
-                             .domain([0, d3.max(dataset, function(d) { return d[0]; })]) //get max value from dataset x-range
+                             .domain([0, d3.max(dataset, function(d) { return d[0]; })]).nice() //get max value from dataset x-range
                              .range([padding, width- padding * 2]);
 
         var yScale = d3.scale.linear()
                              .domain([0, d3.max(dataset, function(d) { return d[1]; })]) //get max value from dataset y-range
                              .range([height - padding, padding]);
+
+        var rScale = d3.scale.linear()
+                             .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+                             .range([2, 5]);
+
+        var formatAsPercentage = d3.format(".1%");
+
+        //Define X axis
+        var xAxis = d3.svg.axis()
+                          .scale(xScale)
+                          .orient("bottom")
+                          .ticks(5)
+                          .tickFormat(formatAsPercentage);
+
+        //Define Y axis
+        var yAxis = d3.svg.axis()
+                          .scale(yScale)
+                          .orient("left")
+                          .ticks(5);
     //Create SVG element in HTML page
         var svg = d3.select("body")
                     .append("svg")
                     .attr("width", width)
                     .attr("height", height);
+            //Create points
             svg.selectAll("circle")
                .data(dataset)
                .enter()
                .append("circle")
                .attr("cx", function(d) {
-                    return d[0];
+                    return xScale(d[0]);
                })
                .attr("cy", function(d) {
-                    return d[1];
+                    return yScale(d[1]);
                })
-               .attr("r", 5);
+               .attr("r", function(d){
+                    return rScale(d[1]);
+               });
+            //Create labels
+            /*
             svg.selectAll("text")
                .data(dataset)
                .enter()
@@ -134,4 +157,16 @@ function scatterChart(dataset) {
                .attr("font-family", "sans-serif")
                .attr("font-size", "11px")
                .attr("fill", "red");
+            */
+            //Create X axis
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(0," + (height - padding) + ")")
+                .call(xAxis);
+            
+            //Create Y axis
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + padding + ",0)")
+                .call(yAxis);
 }

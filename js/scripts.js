@@ -1,6 +1,6 @@
 var reader; //GLOBAL File Reader object for demo purpose only
 var dataSum = 0;
-var dataArray = [];
+var dataSet = [];
 /**
     * Check for the various File API support.
  */
@@ -19,6 +19,7 @@ function checkFileAPI() {
 function readText(filePath) {
     var output = ""; //placeholder for text output
     var stringArray = new Array();
+    var yVals = new Array();
     if(filePath.files && filePath.files[0]) {           
         reader.onload = function (e) {
             output = e.target.result;
@@ -27,11 +28,13 @@ function readText(filePath) {
             //console.log(stringArray);
             stringArray.pop();
             displayContents(cleanOutput); //print output of file to page
-            for(i = 0; i < stringArray.length; i++) { //loop through array, convert each element to an integer, then add to dataArray
+            for(i = 0; i < stringArray.length; i++) { //loop through array, convert each element to an integer, then add to yVals
                 x = parseInt(stringArray[i], 10); //convert each number
                 dataSum += x;
-                dataArray[i] = x;
+                yVals[i] = x;
             }
+            populateDataset(dataSum, yVals); 
+            console.log(dataSet);
         };//end onload()
         reader.readAsText(filePath.files[0]);
     }//end if html5 filelist support
@@ -64,4 +67,15 @@ function readText(filePath) {
 function displayContents(txt) {
     var el = document.getElementById('main'); 
     el.innerHTML = txt; //display output in DOM
+}
+/**
+    * Get X values for dataset (calculated by taking Y value and dividing it by total sum of all y values)
+    * add X and Y values to new array, which will be used to create graphs
+*/
+function populateDataset(sum, array) {
+    for(i = 0; i < array.length; i++) {
+        xVal = array[i] / sum;
+        dataSet[i] = [xVal, array[i]];
+    }
+    return true;
 }

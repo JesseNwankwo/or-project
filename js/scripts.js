@@ -27,13 +27,15 @@ function readText(filePath) {
             stringArray = cleanOutput.split(" ");
             //console.log(stringArray);
             stringArray.pop();
-            displayContents(cleanOutput); //print output of file to page
+            //displayContents(cleanOutput); //print output of file to page
             for(i = 0; i < stringArray.length; i++) { //loop through array, convert each element to an integer, then add to yVals
                 x = parseInt(stringArray[i], 10); //convert each number
                 dataSum += x;
                 yVals[i] = x;
             }
-            populateDataset(dataSum, yVals); 
+            populateDataset(dataSum, yVals);
+            scatterChart(dataSet);
+            //scatterChart();
             console.log(dataSet);
         };//end onload()
         reader.readAsText(filePath.files[0]);
@@ -46,7 +48,7 @@ function readText(filePath) {
             cleanOutput = output.replace(/\s+/g, '') //remove whitespace from string 
             console.log(cleanOutput);
             file.Close(); //close file "input stream"
-            displayContents(output);
+            //displayContents(output);
          }
          catch (e) {
             if (e.number == -2146827859) {
@@ -78,4 +80,58 @@ function populateDataset(sum, array) {
         dataSet[i] = [xVal, array[i]];
     }
     return true;
+}
+function scatterChart(dataset) {
+    //Chart dimensions
+            var width = 500;
+            var height = 100;
+            var padding = 20;
+
+            // var dataset = [
+            //                 [5, 20], [480, 90], [250, 50], [100, 33], [330, 95],
+            //                 [410, 12], [475, 44], [25, 67], [85, 21], [220, 88],
+            //                 [600, 150]
+            // ];
+
+    //Create scales for the data (domain and range)
+        var xScale = d3.scale.linear()
+                             .domain([0, d3.max(dataset, function(d) { return d[0]; })]) //get max value from dataset x-range
+                             .range([padding, width- padding * 2]);
+
+        var yScale = d3.scale.linear()
+                             .domain([0, d3.max(dataset, function(d) { return d[1]; })]) //get max value from dataset y-range
+                             .range([height - padding, padding]);
+    //Create SVG element in HTML page
+        var svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
+            svg.selectAll("circle")
+               .data(dataset)
+               .enter()
+               .append("circle")
+               .attr("cx", function(d) {
+                    return d[0];
+               })
+               .attr("cy", function(d) {
+                    return d[1];
+               })
+               .attr("r", 5);
+            svg.selectAll("text")
+               .data(dataset)
+               .enter()
+               .append("text")
+               .text(function(d) {
+                    return d[0] + "," + d[1];
+               })
+
+               .attr("x", function(d) {
+                    return xScale(d[0]);
+               })
+               .attr("y", function(d) {
+                    return yScale(d[1]);
+               })
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "11px")
+               .attr("fill", "red");
 }

@@ -25,16 +25,29 @@ function readText(filePath) {
             output = e.target.result;
             cleanOutput = output.replace(/\s+/g,"").replace(/\./g," ").replace(/\s+$/, ""); //remove unnecessary whitespace, period, and then remove space from end of string
             stringArray = cleanOutput.split(" ");
-            //console.log(stringArray);
             stringArray.pop();
-            //displayContents(cleanOutput); //print output of file to page
+            //for 100% of data
             for(i = 0; i < stringArray.length; i++) { //loop through array, convert each element to an integer, then add to yVals
                 x = parseInt(stringArray[i], 10); //convert each number
                 dataSum += x;
                 yVals[i] = x;
             }
+            document.getElementById("full-data-graph").innerHTML = "";
             populateDataset(dataSum, yVals);
-            scatterChart(dataSet);
+            scatterChart(dataSet, 100);
+            //for 30% of data
+            dataSum = 0; //reset data sum for new data
+            dataSet.length = 0; //reset dataSet array for new data
+            yVals.length = 0; //reset yVals array for new data
+            limit = Math.floor(stringArray.length * .3); //set limit to 30% of values from file data
+            for(i = 0; i < limit; i++) { //loop through array, convert each element to an integer, then add to yVals
+                x = parseInt(stringArray[i], 10); //convert each number
+                dataSum += x;
+                yVals[i] = x;
+            }
+            document.getElementById("partial-data-graph").innerHTML = "";
+            populateDataset(dataSum, yVals);
+            scatterChart(dataSet, 30);
         };//end onload()
         reader.readAsText(filePath.files[0]);
     }//end if html5 filelist support
@@ -79,11 +92,10 @@ function populateDataset(sum, array) {
     }
     return true;
 }
-function scatterChart(dataset) {
+function scatterChart(dataset, percentage) {
     //Chart dimensions
             var width = 800;
-            var height = 600;
-            var padding = 30;
+            var height = 600;            var padding = 30;
 
             //Static test data
             // var dataset = [
@@ -91,7 +103,7 @@ function scatterChart(dataset) {
             //                 [410, 12], [475, 44], [25, 67], [85, 21], [220, 88],
             //                 [600, 150]
             // ];
-
+    //Clear divs with data (if there's anything in them)
     //Create scales for the data (domain and range)
         var xScale = d3.scale.linear()
                              .domain([0, d3.max(dataset, function(d) { return d[0]; })]).nice() //get max value from dataset x-range
@@ -120,10 +132,18 @@ function scatterChart(dataset) {
                           .orient("left")
                           .ticks(5);
     //Create SVG element in HTML page
-        var svg = d3.select("body")
-                    .append("svg")
-                    .attr("width", width)
-                    .attr("height", height);
+        if(percentage == 100 || percentage == 1) {
+            var svg = d3.select("#full-data-graph")
+                        .append("svg")
+                        .attr("width", width)
+                        .attr("height", height);
+        }
+        if(percentage == 30 || percentage == .3) {
+            var svg = d3.select("#partial-data-graph")
+                        .append("svg")
+                        .attr("width", width)
+                        .attr("height", height);
+        }
             //Create points
             svg.selectAll("circle")
                .data(dataset)
@@ -138,26 +158,6 @@ function scatterChart(dataset) {
                .attr("r", function(d){
                     return rScale(d[1]);
                });
-            //Create labels
-            /*
-            svg.selectAll("text")
-               .data(dataset)
-               .enter()
-               .append("text")
-               .text(function(d) {
-                    return d[0] + "," + d[1];
-               })
-
-               .attr("x", function(d) {
-                    return xScale(d[0]);
-               })
-               .attr("y", function(d) {
-                    return yScale(d[1]);
-               })
-               .attr("font-family", "sans-serif")
-               .attr("font-size", "11px")
-               .attr("fill", "red");
-            */
             //Create X axis
             svg.append("g")
                 .attr("class", "axis")
